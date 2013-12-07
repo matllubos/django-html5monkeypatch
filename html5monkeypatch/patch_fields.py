@@ -15,10 +15,10 @@ logger.info("Patching 'Field.widget_attrs = widget_attrs_monkeypatched': Adds ne
 # raise Exception(hashlib.md5(inspect.getsource(Field.widget_attrs)).hexdigest()) # uncommet to find latest hash
 if not 'fdd8b32e3c5d782f7af69b29bf1b933b' == \
 		hashlib.md5(inspect.getsource(Field.widget_attrs)).hexdigest():
-	logger.warn("md5 signature of 'Field.widget_attrs' does not match Django 1.5. There is a slight chance patch "
+	logger.warn("md5 signature of 'Field.widget_attrs' does not match Django 1.6. There is a slight chance patch "
 					"might be broken so please compare and update this monkeypatch.")
 
-Field.widget_attrs_premonkeypatch = Field.widget_attrs 
+Field.widget_attrs_premonkeypatch = Field.widget_attrs
 def widget_attrs_monkeypatched(self, widget):
 	"""
 	MONKEYPATCHED: Adds new html5 input attributes support by automatically mapping  from the Field instance:
@@ -33,7 +33,7 @@ def widget_attrs_monkeypatched(self, widget):
 	attrs = self.widget_attrs_premonkeypatch(widget)
 	if self.required == True:
 		attrs["required"] = "required"
-	if self.help_text: 	#FIXME: do this only for items per specs http://www.wufoo.com/html5/attributes/01-placeholder.html
+	if self.help_text:  # FIXME: do this only for items per specs http://www.wufoo.com/html5/attributes/01-placeholder.html
 		attrs["placeholder"] = self.help_text
 	if hasattr(self, 'min_value'):
 		attrs["min"] = self.min_value
@@ -45,9 +45,9 @@ def widget_attrs_monkeypatched(self, widget):
 	if isinstance(self, SplitDateTimeField) or isinstance(self, TimeField):
 		attrs['step'] = 1
 	# FIXME: this does not work?! if hasattr(self, 'regex'):
-		
-		# attrs['pattern'] = self.regex 
-		
+
+		# attrs['pattern'] = self.regex
+
 	return attrs
 widget_attrs_monkeypatched.__doc__ += Field.widget_attrs.__doc__  # be still super nice and update the docstring
 

@@ -24,16 +24,18 @@ def baseform__html_output_patched(self, normal_row, error_row, row_ender, help_t
 	
 	FYI: Setting help_text_html to '' results in a string substition error. 
 	"""
-	top_errors = self.non_field_errors() # Errors that should be displayed above all fields.
+	top_errors = self.non_field_errors()  # Errors that should be displayed above all fields.
 	output, hidden_fields = [], []
 
 	for name, field in self.fields.items():
 		html_class_attr = ''
 		bf = self[name]
-		bf_errors = self.error_class([conditional_escape(error) for error in bf.errors]) # Escape and cache in local variable.
+		bf_errors = self.error_class([conditional_escape(error) for error in bf.errors])
 		if bf.is_hidden:
 			if bf_errors:
-				top_errors.extend(['(Hidden field %s) %s' % (name, force_text(e)) for e in bf_errors])
+				top_errors.extend(
+					[_('(Hidden field %(name)s) %(error)s') % {'name': name, 'error': force_text(e)}
+				for e in bf_errors])
 			hidden_fields.append(six.text_type(bf))
 		else:
 			# Create a 'class="..."' atribute if the row should have any
@@ -47,15 +49,10 @@ def baseform__html_output_patched(self, normal_row, error_row, row_ender, help_t
 
 			if bf.label:
 				label = conditional_escape(force_text(bf.label))
-				# Only add the suffix if the label does not end in
-				# punctuation.
-				if self.label_suffix:
-					if label[-1] not in ':?.!':
-						label = format_html('{0}{1}', label, self.label_suffix)
 				label = bf.label_tag(label) or ''
 			else:
 				label = ''
-				
+
 			# we try to follow per http://www.wufoo.com/html5/attributes/01-placeholder.html specs and disable
 			# help text for some elements as in our patch_widgets we make help_text = placeholder
 			if field.help_text and not isinstance(field.widget, Input) and not isinstance(field.widget, Textarea):
@@ -66,7 +63,7 @@ def baseform__html_output_patched(self, normal_row, error_row, row_ender, help_t
 					help_text = help_text_html % force_text(field.help_text)
 				else:
 					help_text = ''
-			
+
 			output.append(normal_row % {
 				'errors': force_text(bf_errors),
 				'label': force_text(label),
@@ -78,7 +75,7 @@ def baseform__html_output_patched(self, normal_row, error_row, row_ender, help_t
 	if top_errors:
 		output.insert(0, error_row % force_text(top_errors))
 
-	if hidden_fields: # Insert any hidden fields in the last row.
+	if hidden_fields:  # Insert any hidden fields in the last row.
 		str_hidden = ''.join(hidden_fields)
 		if output:
 			last_row = output[-1]
@@ -98,14 +95,13 @@ def baseform__html_output_patched(self, normal_row, error_row, row_ender, help_t
 			# If there aren't any rows in the output, just append the
 			# hidden fields.
 			output.append(str_hidden)
-	return mark_safe('\n'.join(output)) 	
+	return mark_safe('\n'.join(output))
 
-BaseForm._html_output  =  baseform__html_output_patched # monkey patch our version in
-del baseform__html_output_patched # clean up namespace
+BaseForm._html_output = baseform__html_output_patched  # monkey patch our version in
+del baseform__html_output_patched  # clean up namespace
 
 # Because of how we are patching above let's at least throw a warning if old method signature changed from what we expect
-if not '5eb59ca5b7ce7cb472ea43427cb7f819' == \
+if not '6c24ce41469c3d576cc855678340c6ac' == \
 		hashlib.md5(inspect.getsource(BaseForm._html_output_premonkeypatch)).hexdigest():
 	warnings.warn('md5 signature of BaseForm._html_output does match because Django code has been updated. There is a '
 				  'slight change patch might be broken so please compare and update the monkeypatched method.')
-	
